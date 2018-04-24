@@ -33,40 +33,37 @@ int pagefault(char *vaddress)
     i=countframesassigned();
    
     // Busca un marco libre en el sistema
+    frame=getfreeframe();
 
 //printf("------------------------------%d \n",i);
-//////////////////////////////////////////////////////
-  //  if(i != 3)
-        frame=getfreeframe();
+//////////////////////////////////////////////////////modifications
     if(frame == -1)
     {
         int frames[3], f = 0;
-        for(int j = 0; j < 6 ;j++){
-            if(ptbr[j].presente == 1 && 3>f){
-                frames[f] = j;
-                f++;
-            }
-        }
+        for(int j = 0; j < 6 ;j++)
+            if(ptbr[j].presente == 1 && 3>f)
+                frames[f++] = j;
 
+//////////////////////////////checar cual de los access fue el menos reciente
         if(ptbr[frames[0]].tlastaccess < ptbr[frames[1]].tlastaccess && ptbr[frames[0]].tlastaccess < ptbr[frames[2]].tlastaccess){
-            pag_a_expulsar = frames[0];
+            pag_a_expulsar = frames[0];//the frame 0 is the one to move to virtual memory
         }
-
         else if(ptbr[frames[1]].tlastaccess < ptbr[frames[0]].tlastaccess && ptbr[frames[1]].tlastaccess < ptbr[frames[2]].tlastaccess){
-            pag_a_expulsar = frames[1];
+            pag_a_expulsar = frames[1];//the frame 1 is the one to move to virtual memory
         }
-
         else{
-            pag_a_expulsar = frames[2];
-	}
+            pag_a_expulsar = frames[2];//the frame 2 is the one to move to virtual memory
+	}		
 
-        if(ptbr[pag_a_expulsar].modificado == 1){
+		//avisa al sistema que la pagina ahora está libre ("no" ha sido modificada)
             ptbr[pag_a_expulsar].modificado = 0;
-        }
 
+		//avisar al sistema que la pagina no esta ocupando memoria fisica
        ptbr[pag_a_expulsar].presente = 0;
+		//guardar la dirección de la página a liberar
        frame = ptbr[pag_a_expulsar].framenumber;
-       ptbr[pag_a_expulsar].framenumber = ptbr[pag_a_expulsar].framenumber + 12;
+		//guardar la página a liberar en memoria virtual (12 = tamaño de la tabla, al sumar 12 se cambia a la tabla de mem.virtual)
+       ptbr[pag_a_expulsar].framenumber += 12;
     }
 
 //////////////////////////////////////////////////////
